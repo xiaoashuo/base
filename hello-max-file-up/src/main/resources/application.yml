@@ -1,0 +1,37 @@
+spring:
+  thymeleaf:
+    cache: false # 开发时关闭缓存,不然没法看到实时页面
+    mode: HTML # 用非严格的 HTML
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/cloudnote?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+    jpa:
+      show-sql: true
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    #    password: 123456
+    timeout: 5000
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        max-wait: -1ms
+        min-idle: 0
+
+  servlet:
+    multipart:
+      max-request-size: 5GB
+      max-file-size: 5GB
+
+
+yakir:
+  upload:
+     dir: D:/data0/uploads/
+    #1024*1024=1 048 576,5M=5 242 880
+     chunkSize: 5 242 880

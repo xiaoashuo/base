@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>实现方案1</title>
+</head>
+<body>
+<input type="file" id="file" />
+
+<button id="upload">上传</button>
+
+<span id="output" style="font-size:12px">等待</span>
+
+
+<span id="usetime" style="font-size:12px;margin-left:20px;"></span>
+
+<span id="uuid" style="font-size:12px;margin-left:20px;"></span>
+
+<br/>
+<div>上传百分比:<span id="percentage"></span> </div>
+<br/>
+<br/>
+<br/>
+<span id="param" style="font-size:12px;margin-left:20px;">param==</span>
+
+<script src="http://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="js/md5Encode.js"></script>
+<script src="js/spark-md5.js"></script>
+
+<script>
+
+</script>
+<script>
+    var chunk=-1; //分片数
+    var succeed=0; //成功标识
+    var dataBegin;//开始时间
+    var dataEnd;//结束时间
+    var action=false; //false检验分片是否上传过 (默认) true 表示上传文件
+    const shardSize = 50 * 1024 * 1024;   //以50MB为一个分片
+    var page={
+        init: function () {
+          $("#upload").click(function () {
+             dataBegin=new Date();
+             var file=$("#file")[0].files[0]; //文件对象
+              CheckIsUpload(file);
+          })
+        }
+    }
+    $(function () {
+        page.init();
+    })
+    /**
+     * 检查文件是否上传
+     */
+    function CheckIsUpload(file) {
+        chunk=-1;
+        succeed=0; //成功标识
+        dataBegin;//开始时间
+        dataEnd;//结束时间
+        action=false; //false检验分片是否上传过 (默认) true 表示上传文件
+        //构建一个表单 FoemData Html5新增的
+        var form=new FormData();
+        var r=new FileReader();
+        r.readAsArrayBuffer(file);
+        $(r).load(function (e) {
+           var blob= e.target.result;
+           var fileMd5=SparkMD5.ArrayBuffer.hash(blob);
+           form.append("md5",fileMd5);
+           console.log(fileMd5)
+            //Ajax提交
+            $.ajax({
+                url: "example1/isUpload",
+                type: "POST",
+                data: form,
+                async: true,
+                processData: false,//很重要，告诉jquery不要对form进行处理
+                contentType: false,  //很重要，指定为false才能形成正确的Content-Type
+                success: function (data) {
+                   handleCheckIsUploadResult(file,fileMd5,data);
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    alert("服务器出错!");
+               }
+
+            })
+        })
+    }
+    /**
+     * 处理检查是否上传的结果
+     * @param file 当前文件
+     * data: fileId  date  flag
+     *     @param flag 0未上传 1 部分上传 2 妙传逻辑
+     */
+    function handleCheckIsUploadResult(file,fileMd5,data) {
+        var uuid=data.fileId; //后端返回uuid
+        let date=data.date;
+        let flag=data.flag; //上传标记 0 未上传过 1 部分上传 2 妙传逻辑
+        if (flag=="0"){
+            //没有上传过文件
+            upload(file,uuid,fileMd5,date)
+        } else if (flag=="1"){
+            //已经上传了部分
+            upload(file,uuid,fileMd5,date);
+        } else if (flag=="2"){
+            alert("文件已经上传过 妙传了")
+            $("#uuid").append(uuid);
+        }
+    }
+
+    /**
+     *
+     * @param file文件对象
+     * @param uuid 后端生成的uuid
+     * @param filemd5 整个文件的md5
+     * @param date 文件第一个分片上传日期
+     */
+    function upload(file,uuid,filemd5,date) {
+        let name = file.name;        //文件名
+        let size = file.size;        //总大小
+        let shardCount = Math.ceil(size / shardSize);  //总片数
+        //分片数>分片总数 结束本次方法调用
+        if (chunk> shardCount) return;
+        if(!action){
+                chunk += 1;  //只有在检测分片时,i才去加1; 上传文件时无需加1
+        }
+
+        //计算每一片的起始和结束位置
+        let start=chunk*shardSize;
+        let end=Math.min(size,start+shardSize);
+        //构造一个表单，FormData是HTML5新增的
+        var form = new FormData();
+        if(!action){
+            form.append("action", "check");  //检测分片是否上传
+            $("#param").append("action==check ");
+        }else{
+            form.append("action", "upload");  //直接上传分片
+            form.append("data", file.slice(start,end));  //slice方法用于切出文件的一部分
+            $("#param").append("action==upload ");
+        }
+        form.append("uuid", uuid);
+        form.append("md5", filemd5);
+        form.append("date", date);
+        form.append("name", name);
+        form.append("size", size);
+        form.append("total", shardCount);  //总片数
+        form.append("index", chunk+1);        //当前是第几片
+        var index = chunk+1;
+        $("#param").append("index=="+index+"<br/>");
+        //按大小切割文件段　　
+        var data = file.slice(start, end);
+        var r = new FileReader();
+        r.readAsArrayBuffer(data);
+        $(r).load(function (e) {
+            var bolb = e.target.result;
+            var partMd5=SparkMD5.ArrayBuffer.hash(bolb);
+            form.append("partMd5", partMd5);
+            //Ajax提交
+            $.ajax({
+                url: "example1/upload",
+                type: "POST",
+                data:form,
+                async: true,
+                processData: false,  //很重要，告诉jquery不要对form进行处理
+                contentType: false,  //很重要，指定为false才能形成正确的Content-Type
+                success: function (data) {
+                    handleUploadResult(file,uuid,filemd5,date,shardCount,data);
+                },error: function(XMLHttpRequest, textStatus, errorThrown) {
+
+                    alert("服务器出错!");
+
+                }
+            })
+        })
+    }
+
+    /**
+     * 处理上传的结果
+     * @param file
+     * @param uuid
+     * @param filemd5
+     * @param date
+     * @param shardCount
+     * @param data
+     */
+    function handleUploadResult(file,uuid,filemd5,date,shardCount,data) {
+        var fileuuid = data.fileId;
+        var flag = data.flag;
+        //服务器返回该分片是否上传过
+        if (flag=="2"){
+            ++succeed;
+            $("#output").text(succeed + " / " + shardCount);
+            //服务器返回分片是否上传成功
+            if (succeed  == shardCount) {
+                dataEnd = new Date();
+                $("#uuid").text("uuid="+fileuuid);
+                $("#usetime").text("用时:"+((dataEnd.getTime() - dataBegin.getTime())/1000)+"s");
+                $("#param").append("<br/>" + "上传成功！");
+            }
+        }
+        else{
+            if (flag=="0"){
+                //未上传,继续上传
+                action = true;
+            }
+            else if (flag=="1"){
+                action=false;
+                ++succeed;
+                $("#output").text(succeed + " / " + shardCount);
+                $("#percentage").text(succeed/shardCount*100);
+            }
+            upload(file, uuid, filemd5, date);
+        }
+    }
+</script>
+</body>
+</html>
