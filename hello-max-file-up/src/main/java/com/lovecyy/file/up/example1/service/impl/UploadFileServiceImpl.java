@@ -1,9 +1,10 @@
-package com.lovecyy.file.up.example1.service;
+package com.lovecyy.file.up.example1.service.impl;
 
 import com.lovecyy.file.up.example1.constants.Constant;
 import com.lovecyy.file.up.example1.dao.UploadFileRepository;
 import com.lovecyy.file.up.example1.pojo.MultipartFileParam;
 import com.lovecyy.file.up.example1.pojo.UploadFile;
+import com.lovecyy.file.up.example1.service.UploadFileService;
 import com.lovecyy.file.up.example1.utils.FileMd5Util;
 import com.lovecyy.file.up.example1.utils.KeyUtil;
 import com.lovecyy.file.up.example1.utils.NameUtil;
