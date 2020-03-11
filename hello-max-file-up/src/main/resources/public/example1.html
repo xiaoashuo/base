@@ -24,7 +24,6 @@
 <span id="param" style="font-size:12px;margin-left:20px;">param==</span>
 
 <script src="http://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
-<script src="js/md5Encode.js"></script>
 <script src="js/spark-md5.js"></script>
 
 <script>
@@ -42,6 +41,7 @@
           $("#upload").click(function () {
              dataBegin=new Date();
              var file=$("#file")[0].files[0]; //文件对象
+              $("#output").text("开始上传中。。。")
               CheckIsUpload(file);
           })
         }
@@ -123,7 +123,6 @@
         if(!action){
                 chunk += 1;  //只有在检测分片时,i才去加1; 上传文件时无需加1
         }
-
         //计算每一片的起始和结束位置
         let start=chunk*shardSize;
         let end=Math.min(size,start+shardSize);
@@ -165,9 +164,7 @@
                 success: function (data) {
                     handleUploadResult(file,uuid,filemd5,date,shardCount,data);
                 },error: function(XMLHttpRequest, textStatus, errorThrown) {
-
                     alert("服务器出错!");
-
                 }
             })
         })

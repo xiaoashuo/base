@@ -143,6 +143,7 @@ public class UploadFileServiceImpl implements UploadFileService {
                     for (int i = 0; i < fileArray.length; i++) {
                         File tmpFile = new File(saveDirectory, fileId + "_" + (i + 1));
                         FileUtils.copyFile(tmpFile,outputStream);
+                        //应该放在循环结束删除 可以避免 因为服务器突然中断 导致文件合并失败 下次也无法再次合并
                         tmpFile.delete();
                     }
                     outputStream.close();
