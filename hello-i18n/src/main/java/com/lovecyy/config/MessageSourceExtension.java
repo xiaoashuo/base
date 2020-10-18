@@ -1,35 +1,17 @@
 package com.lovecyy.config;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
-import org.springframework.boot.autoconfigure.condition.ConditionMessage;
-import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
-import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.context.MessageSourceProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.core.Ordered;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 消息源扩展
@@ -42,6 +24,7 @@ import java.util.Set;
  * （在真实的应用中，刷新周期不能太短，否则频繁的刷新将带来性能上的负面影响，一般不建议小于30分钟）。cacheSeconds默认值为-1表示永不刷新，此时，该实现类的功能就蜕化为ResourceBundleMessageSource的功能。
  * @author shuoyu
  */
+@Slf4j
 @RequiredArgsConstructor
 public class MessageSourceExtension extends ResourceBundleMessageSource {
     private static final Resource[] NO_RESOURCES = {};
@@ -68,7 +51,58 @@ public class MessageSourceExtension extends ResourceBundleMessageSource {
 
     }
 
+    /**
+     * 真正实现结果获取的地方
+     * @param basename i18n/shop/shop
+     * @param locale en_US
+     * @return
+     * @throws MissingResourceException
+     */
+    @Override
+    protected ResourceBundle doGetBundle(String basename, Locale locale) throws MissingResourceException {
+        //父类MessageSource实现 读取的是配置文件的
+        //ResourceBundle delegate = super.doGetBundle(basename, locale);
+     try {
 
+         ResourceBundle resourceBundle = new ResourceBundle() {
+             @Override
+             protected Object handleGetObject(String key) {
+                 return   MockDataSource.loadMessageFromCache(basename, locale,key);
+             }
+
+             @Override
+             public Enumeration<String> getKeys() {
+                 log.info("获取基础名[{}]语言[{}]的key",basename,locale.toString());
+                 Set<String> l = MockDataSource.loadKeysFromCache(basename, locale);
+                 return Collections.enumeration(l);
+             }
+         };
+         return resourceBundle;
+
+     }catch (MissingResourceException ex){
+         if (logger.isWarnEnabled()) {
+             logger.warn("ResourceBundle [" + basename + "] not found for MessageSource: " + ex.getMessage());
+         }
+         // Assume bundle not found
+         // -> do NOT throw the exception to allow for checking parent message source.
+         return null;
+     }
+
+    }
+
+    /**
+     * 删除数据库参数这两个也要删除 虽然删除数据库已经看不到了 但会导致缓存冗余 在以下两个告诉内存
+     *   ResourceBundleMessageSource
+     *      cachedResourceBundles
+     *      cachedBundleMessageFormats
+     *  还有一种方式就是告诉缓存 我们自己配置 重写更高级的方法
+     *
+     *  getResourceBundle 无参
+     *  getMessageFormat  有参会多带的
+     */
+    public void removeCachedResourceBundles(){
+
+    }
     /**
      * 填充消息源
      * @param resourceBundleMessageSource
