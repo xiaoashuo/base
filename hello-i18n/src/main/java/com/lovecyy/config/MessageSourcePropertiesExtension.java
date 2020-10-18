@@ -4,6 +4,10 @@ import lombok.Data;
 import org.springframework.boot.autoconfigure.context.MessageSourceProperties;
 
 
+/**
+ * 消息源属性扩展
+ * @author shuoyu
+ */
 @Data
 public class MessageSourcePropertiesExtension extends MessageSourceProperties {
     /**

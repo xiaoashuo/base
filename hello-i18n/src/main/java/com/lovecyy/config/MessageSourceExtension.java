@@ -1,5 +1,6 @@
 package com.lovecyy.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
@@ -41,25 +42,14 @@ import java.util.Set;
  * （在真实的应用中，刷新周期不能太短，否则频繁的刷新将带来性能上的负面影响，一般不建议小于30分钟）。cacheSeconds默认值为-1表示永不刷新，此时，该实现类的功能就蜕化为ResourceBundleMessageSource的功能。
  * @author shuoyu
  */
-@Component("messageSource")
-@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
+@RequiredArgsConstructor
 public class MessageSourceExtension extends ResourceBundleMessageSource {
     private static final Resource[] NO_RESOURCES = {};
 
-
-
-    @Bean
-    @ConfigurationProperties(prefix = "spring.messages")
-    public MessageSourcePropertiesExtension messageSourceProperties() {
-        return new MessageSourcePropertiesExtension();
-    }
-
-    @Autowired
-    private MessageSourcePropertiesExtension messageSourceProperties;
+    private final MessageSourcePropertiesExtension messageSourceProperties;
 
     @PostConstruct
     public void init(){
-
         if (!StringUtils.isEmpty(messageSourceProperties.getBaseFolder())) {
             this.setBasenames(this.getBaseNames(messageSourceProperties.getBaseFolder(),messageSourceProperties.isIncludeChildFile()));
             fillMessageSource(this,messageSourceProperties);
