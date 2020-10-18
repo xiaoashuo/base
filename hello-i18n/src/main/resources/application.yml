@@ -1,3 +1,4 @@
 spring:
   messages:
     basename: i18n/messages
+    baseFolder: i18n
