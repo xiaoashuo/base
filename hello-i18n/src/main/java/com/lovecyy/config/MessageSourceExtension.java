@@ -58,7 +58,7 @@ public class MessageSourceExtension extends ResourceBundleMessageSource {
     private MessageSourcePropertiesExtension messageSourceProperties;
 
     @PostConstruct
-    public void init(  ){
+    public void init(){
 
         if (!StringUtils.isEmpty(messageSourceProperties.getBaseFolder())) {
             this.setBasenames(this.getBaseNames(messageSourceProperties.getBaseFolder(),messageSourceProperties.isIncludeChildFile()));
@@ -78,27 +78,6 @@ public class MessageSourceExtension extends ResourceBundleMessageSource {
 
     }
 
-//    @Override
-//    protected String resolveCodeWithoutArguments(String code, Locale locale) {
-//        // 获取request中设置的指定国际化文件名
-//        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-//         String i18File = (String) attr.getAttribute("i18n_attribute", RequestAttributes.SCOPE_REQUEST);
-//        if (!StringUtils.isEmpty(i18File)) {
-//            //获取在basenameSet中匹配的国际化文件名
-//            String basename = getBasenameSet().stream()
-//                    .filter(name -> StringUtils.endsWithIgnoreCase(name, i18File))
-//                    .findFirst().orElse(null);
-//            if (!StringUtils.isEmpty(basename)) {
-//                //得到指定的国际化文件资源
-//                ResourceBundle bundle = getResourceBundle(basename, locale);
-//                if (bundle != null) {
-//                    return getStringOrNull(bundle, code);
-//                }
-//            }
-//        }
-//        //如果指定i18文件夹中没有该国际化字段,返回null会在ParentMessageSource中查找
-//        return null;
-//    }
 
     /**
      * 填充消息源
@@ -152,20 +131,7 @@ public class MessageSourceExtension extends ResourceBundleMessageSource {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        ConditionMessage.Builder message = ConditionMessage
-                .forCondition("ResourceBundle");
-        Resource[] resources = getResources("i18n/**/*");
-        for (Resource resource : resources) {
-            if (resource.exists()) {
-                String s = resource.getURI().toString();
-                int i = s.lastIndexOf("i18n");
 
-                String i18FileName = getI18FileName( s .substring(i));
-            }
-        }
-        System.out.println(resources);
-    }
 
     /**
      * 把普通文件名转换成国际化文件名
