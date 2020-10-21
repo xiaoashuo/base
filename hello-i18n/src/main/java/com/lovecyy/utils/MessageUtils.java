@@ -21,6 +21,13 @@ public class MessageUtils {
         Locale locale = LocaleContextHolder.getLocale();
         return messageSource.getMessage(code, null, code, locale);
     }
+    public static String getMessage(String code,Object[] params){
+        Locale locale = LocaleContextHolder.getLocale();
+        return messageSource.getMessage(code, params, code, locale);
+    }
+    public static String getMessage(String code,Object[] params,Locale locale){
+        return messageSource.getMessage(code, params, code, locale);
+    }
     public String getMessage(String code, Object[] args, String defaultParam, Locale locale){
         return messageSource.getMessage(code, args, defaultParam, locale);
     }

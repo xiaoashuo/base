@@ -1,4 +1,15 @@
 spring:
+
+#    localCache: false
+#    supportSql: true
+
+
+i18n:
   messages:
     basename: i18n/messages
     baseFolder: i18n
+    #    localCache: false
+#    supportSql: false
+logging:
+  level:
+    root: debug

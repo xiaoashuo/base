@@ -18,4 +18,14 @@ public class MessageSourcePropertiesExtension extends MessageSourceProperties {
      * 是否包含子及子孙文件
      */
     private boolean includeChildFile=true;
+    /**
+     * 本地缓存
+     */
+    private boolean localCache=false;
+    /**
+     * 支持sql
+     */
+    private boolean supportSql=false;
+
+
 }

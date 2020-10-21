@@ -15,4 +15,9 @@ public class LocaleController {
         String message = MessageUtils.getMessage(msg);
         return R.ok(message);
     }
+    @GetMapping("param/test")
+    public R ok(String msg,String code){
+        String message = MessageUtils.getMessage(msg+"{0}",new Object[]{code});
+        return R.ok(message);
+    }
 }
