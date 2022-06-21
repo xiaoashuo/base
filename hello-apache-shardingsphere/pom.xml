@@ -63,8 +63,8 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <!-- MySQL 驱动的版本号必须是 5.1.48 -->
-            <version>5.1.48</version>
+            <!-- MySQL 驱动的版本号必须是 8.0.28 -->
+            <version>8.0.28</version>
         </dependency>
         <dependency>
             <groupId>tk.mybatis</groupId>
